@@ -1,7 +1,7 @@
 module Canvas.Edge exposing
     ( Edge
     , decoder
-    , encoder
+    , encode
 
     , fromValues
 
@@ -32,7 +32,7 @@ Edges are the arrows that create visual relationships between Nodes on a Canvas.
 
 # JSON decode/encode
 
-@docs decoder, encoder
+@docs decoder, encode
 
 # Retrieving values
 
@@ -117,10 +117,8 @@ constructor id fromNode fromSide toNode toSide color label =
 
 {-| Encodes an Edge into a JSON object.
 -}
-encoder :
-    Edge
-    -> Encode.Value
-encoder (Edge edge) =
+encode : Edge -> Encode.Value
+encode (Edge edge) =
     Encode.object <|
         [ ("id", Encode.string <| ID.toString edge.id)
         , ("fromNode", Encode.string <| ID.toString edge.fromNode)

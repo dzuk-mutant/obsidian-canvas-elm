@@ -1,11 +1,8 @@
 module Example exposing (..)
 
-import Canvas exposing (..)
+import Canvas.Edge as Edge
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer, int, list, string)
-import Hex
-import Json.Decode as Decode
-import Json.Encode as Encode
 import Test exposing (..)
 
 

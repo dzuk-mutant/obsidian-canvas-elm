@@ -1,12 +1,12 @@
 module Canvas exposing
     ( Canvas
     , decoder
-    , encoder
+    , encode
     )
     
 {-| The module for an entire Obsidian Canvas file.
 
-@docs Canvas, decoder, encoder
+@docs Canvas, decoder, encode
 -}
 
 
@@ -45,12 +45,12 @@ constructor nodes edges =
     }
 
 
-{-| Canvas JSON encoder.
+{-| Encodes a Canvas into a JSON object.
 -}
-encoder : Canvas -> Encode.Value
-encoder (Canvas canvas) =
+encode : Canvas -> Encode.Value
+encode (Canvas canvas) =
     Encode.object <|
-        [ ( "nodes", (Encode.list Node.encoder canvas.nodes))
-        , ( "edges", (Encode.list Edge.encoder canvas.edges))
+        [ ( "nodes", (Encode.list Node.encode canvas.nodes))
+        , ( "edges", (Encode.list Edge.encode canvas.edges))
         ]
 

@@ -1,8 +1,8 @@
-module Canvas.Node exposing (Node(..), decoder, encoder)
+module Canvas.Node exposing (Node(..), decoder, encode)
 
 {-| Nodes are the objects on a Canvas that contain content.
 
-@docs Node, decoder, encoder
+@docs Node, decoder, encode
 -}
 
 import Canvas.Color exposing (Color)
@@ -48,8 +48,8 @@ decoder =
 
 {-| Encodes a Node into a JSON object.
 -}
-encoder : Node -> Encode.Value
-encoder node =
+encode : Node -> Encode.Value
+encode node =
     {- (dict keys are given here so they're all in one place
     like with nodeDecoder.)
     -}
