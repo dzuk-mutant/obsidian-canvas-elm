@@ -52,4 +52,3 @@ fromString str =
         "bottom" -> Just Bottom
         "left" -> Just Left
         _ -> Nothing
-

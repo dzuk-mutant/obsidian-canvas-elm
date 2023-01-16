@@ -45,5 +45,3 @@ fromString str =
     case Hex.fromString str of 
         Ok int -> Just int
         Err _ -> Nothing
-
-

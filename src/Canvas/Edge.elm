@@ -1,4 +1,4 @@
-module Canvas.Edge exposing (Edge, decoder, encoder)
+module Canvas.Edge exposing (Edge, decoder, encoder, fromValues)
 
 import Canvas.Color exposing (Color)
 import Canvas.Helper exposing (packMaybeJSONValue)
@@ -12,8 +12,11 @@ import Json.Encode as Encode
 
 {-| Edges are the arrows that create relationships between
 nodes.
+
+Edge is an opaque type for more stable control over values.
 -}
-type alias Edge =
+type Edge =
+    Edge
     { id : ID -- unique ID for this edge
     , fromNode : ID -- ID of the node this comes from
     , fromSide : NodeSide
@@ -28,7 +31,7 @@ type alias Edge =
 -}
 decoder : Decoder Edge
 decoder =
-    succeed Edge
+    succeed constructor
     |> required "id" ID.decoder
     |> required "fromNode" ID.decoder
     |> required "fromSide" NodeSide.decoder
@@ -38,12 +41,36 @@ decoder =
     |> optional "label" (maybe string) Nothing
 
 
+{-| Constructor function for the JSON decoder.
+We need a constructor because this is an opaque type.
+-}
+constructor :
+    ID
+    -> ID
+    -> NodeSide
+    -> ID
+    -> NodeSide
+    -> Maybe String
+    -> Maybe String
+    -> Edge
+constructor id fromNode fromSide toNode toSide color label =
+    Edge
+    { id = id
+    , fromNode = fromNode
+    , fromSide = fromSide
+    , toNode = toNode
+    , toSide = toSide
+    , color = color
+    , label = label
+    }
+
+
 {-| Encodes an Edge into a JSON object.
 -}
 encoder :
     Edge
     -> Encode.Value
-encoder edge =
+encoder (Edge edge) =
     Encode.object <|
         [ ("id", Encode.string <| ID.toString edge.id)
         , ("fromNode", Encode.string <| ID.toString edge.fromNode)
@@ -54,3 +81,24 @@ encoder edge =
         ++ packMaybeJSONValue "color" Encode.string edge.color
         ++ packMaybeJSONValue "label" Encode.string edge.label
 
+
+fromValues :
+    { id : ID
+    , fromNode : ID
+    , fromSide : NodeSide
+    , toNode : ID
+    , toSide : NodeSide
+    , color : Maybe Color
+    , label : Maybe String
+    }
+    -> Edge
+fromValues {id, fromNode, fromSide, toNode, toSide, color, label} =
+    Edge
+    { id = id
+    , fromNode = fromNode
+    , fromSide = fromSide
+    , toNode = toNode
+    , toSide = toSide
+    , color = color
+    , label = label
+    }
