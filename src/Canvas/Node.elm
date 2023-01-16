@@ -1,5 +1,10 @@
 module Canvas.Node exposing (Node(..), decoder, encoder)
 
+{-| Nodes are the objects on a Canvas that contain content.
+
+@docs Node, decoder, encoder
+-}
+
 import Canvas.Color exposing (Color)
 import Canvas.Helper exposing (packMaybeJSONValue)
 import Canvas.ID as ID exposing (ID)
@@ -8,9 +13,11 @@ import Json.Decode.Pipeline exposing (required, optional)
 import Json.Encode as Encode
 
 
-{-| Nodes in a Canvas can be one of several
-types. This Custom Type branches these
-possibilities out.
+
+{-| A Node type.
+
+A Node can be multiple similar things, which is represented
+here as a Custom Type.
 -}
 type Node
     = FileNode File
@@ -38,20 +45,19 @@ decoder =
                 _ -> fail "blah"
             )
 
-{-| Encodes a node based on it's type.
 
-(dict keys are given here so they're all in one place
-like with nodeDecoder.)
+{-| Encodes a Node into a JSON object.
 -}
 encoder : Node -> Encode.Value
 encoder node =
+    {- (dict keys are given here so they're all in one place
+    like with nodeDecoder.)
+    -}
     case node of
         FileNode f -> fileEncoder "file" f
         TextNode t -> textEncoder "text" t
         LinkNode l -> linkEncoder "link" l
         GroupNode g -> groupEncoder "group" g
-
-
 
 
 ----------------------------------------------------
@@ -64,6 +70,7 @@ encoder node =
 ----------------------------------------------------
 ----------------------------------------------------
 
+
 {-| All nodes have shared fields, represented by
 this extensible record.
 -}
@@ -75,6 +82,7 @@ type alias CanvasNode r =
         , height : Int
         , color : Maybe Color
     }
+
 
 {-| Packs the  shared section of a Node for encoding.
 
@@ -159,6 +167,7 @@ fileConstructor id x y width height color file subpath =
     , subpath = subpath
     }
 
+
 {-| Encodes a file node as a JSON object.
 -}
 fileEncoder :
@@ -168,8 +177,8 @@ fileEncoder :
 fileEncoder typeStr file =
     Encode.object <|
         canvasNodeToJSONVals typeStr file
-        ++ [("text", Encode.string file.file)]
-        ++ packMaybeJSONValue "subpath" Encode.string file.subpath
+        ++ ("text", Encode.string file.file)
+        :: packMaybeJSONValue "subpath" Encode.string file.subpath
 
 
 ----------------------------------------------------
@@ -227,6 +236,7 @@ textConstructor id x y width height color text =
     , color = color
     , text = text
     }
+
 
 {-| Encodes a text node as a JSON object.
 -}

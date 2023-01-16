@@ -7,7 +7,7 @@ side Edges come to and from.
 
 import Json.Decode exposing (Decoder, andThen, string, fail, succeed)
 
-{-| The side of the node that a connection is connected to
+{-| The side of the node that a connection is connected to.
 -}
 type NodeSide
     = Top
@@ -30,6 +30,12 @@ decoder =
 
 {-| Converts a NodeSide to its corresponding string
 that appears in JSON.
+
+    NodeSide.toString Top
+    -- "top"
+
+    NodeSide.toString Right
+    -- "right"
 -}
 toString : NodeSide -> String
 toString nodeSide =
@@ -43,6 +49,12 @@ toString nodeSide =
 {-| Converts corresponding strings to NodeSide values.
 
 Will return Nothing if the string is not valid.
+
+    NodeSide.fromString "top"
+    -- Just Top
+
+    NodeSide.fromString "blah"
+    -- Nothing
 -}
 fromString : String -> Maybe NodeSide
 fromString str =
