@@ -2,29 +2,25 @@ module Canvas.Edge exposing
     ( Edge
     , decoder
     , encode
+    , Err(..)
 
     , fromValues
-
+    
     , getID
-    , getFromNode
-    , getFromSide
-    , getToNode
-    , getToSide
+    , getAttachments
     , getColor
     , getLabel
 
-    , changeFromNode
-    , changeFromSide
-    , changeToNode
-    , changeToSide
-    , changeColor
-    , changeLabel
+    , setAttachments
+    , setColor
+    , setLabel
     )
+
 {-| The module handling Edges.
 
 Edges are the arrows that create visual relationships between Nodes on a Canvas.
 
-@docs Edge
+@docs Edge, Err
 
 # Creation
 
@@ -36,19 +32,16 @@ Edges are the arrows that create visual relationships between Nodes on a Canvas.
 
 # Retrieving values
 
-@docs getID, getFromNode, getFromSide, getToNode, getToSide, getColor, getLabel
+@docs getID, getAttachments, getColor, getLabel
 
 # Changing values
 
 You cannot change IDs manually.
 
-    edge
-    |> Edge.changeFromNode 545287
-    |> Edge.changeFromSide Left
-
-@docs changeFromNode, changeFromSide, changeToNode, changeToSide, changeColor, changeLabel
+@docs setAttachments, setColor, setLabel
 -}
 
+import Canvas.Attachments as Attachments exposing (Attachments(..))
 import Canvas.Color exposing (Color)
 import Canvas.Helper exposing (packMaybeJSONValue)
 import Canvas.ID as ID exposing (ID)
@@ -68,10 +61,7 @@ This type is opaque for more stable API interactions.
 type Edge =
     Edge
     { id : ID -- unique ID for this edge
-    , fromNode : ID -- ID of the node this comes from
-    , fromSide : NodeSide
-    , toNode : ID -- ID of the node where this goes to.
-    , toSide : NodeSide
+    , attachments : Attachments
     , color : Maybe Color
     , label : Maybe String
     }
@@ -106,28 +96,35 @@ constructor :
 constructor id fromNode fromSide toNode toSide color label =
     Edge
     { id = id
-    , fromNode = fromNode
-    , fromSide = fromSide
-    , toNode = toNode
-    , toSide = toSide
+    , attachments = Attachments.fromValues fromNode fromSide toNode toSide
     , color = color
     , label = label
     }
 
 
-{-| Encodes an Edge into a JSON object.
+{-| Errors this module can throw.
+
+- AttachmentErr - an Attachment has thrown an Err.
 -}
-encode : Edge -> Encode.Value
+type Err
+    = AttachmentErr Attachments.Err
+
+
+{-| Encodes an Edge into a JSON object.
+
+If the attachments are not fully set, then it will throw an Err.
+-}
+encode : Edge -> Result Err Encode.Value
 encode (Edge edge) =
-    Encode.object <|
-        [ ("id", Encode.string <| ID.toString edge.id)
-        , ("fromNode", Encode.string <| ID.toString edge.fromNode)
-        , ("fromSide", Encode.string <| NodeSide.toString edge.fromSide)
-        , ("toNode", Encode.string <| ID.toString edge.toNode)
-        , ("toSide", Encode.string <| NodeSide.toString edge.toSide)
-        ]
-        ++ packMaybeJSONValue "color" Encode.string edge.color
-        ++ packMaybeJSONValue "label" Encode.string edge.label
+    case Attachments.encodeList edge.attachments of
+        Err e -> Err <| AttachmentErr e
+        Ok attachmentList ->
+            Ok <|
+                Encode.object <|
+                    ("id", Encode.string <| ID.toString edge.id )
+                    :: attachmentList
+                    ++ packMaybeJSONValue "color" Encode.string edge.color
+                    ++ packMaybeJSONValue "label" Encode.string edge.label
 
 
 {-| Constructs an edge from a series of values.
@@ -161,7 +158,7 @@ fromValues :
     -> Edge
 fromValues {fromNode, fromSide, toNode, toSide, color, label} =
     constructor
-        234235 -- TODO: Figure out how to dynamically create these.
+        (ID.fromInt 234235) -- TODO: Figure out how to dynamically create these.
         fromNode
         fromSide
         toNode
@@ -188,37 +185,12 @@ getID : Edge -> ID
 getID (Edge edge) = edge.id
 
 
-{-| Gets the ID of the node that an Edge is coming from.
+{-| Gets the attachments of a node.
 
-    Edge.getFromNode edge
+    Edge.getAttachments edge
 -}
-getFromNode : Edge -> ID
-getFromNode (Edge edge) = edge.fromNode
-
-
-{-| Gets the NodeSide of the node that an Edge is coming from.
-
-    Edge.getFromSide edge
--}
-getFromSide : Edge -> NodeSide
-getFromSide (Edge edge) = edge.fromSide
-
-
-{-| Gets the ID of the node that an Edge is pointing towards.
-
-    Edge.getToNode edge
--}
-getToNode : Edge -> ID
-getToNode (Edge edge) = edge.toNode
-
-
-{-| Gets the NodeSide of the node that an Edge is pointing towards./
-
-    Edge.getToSide edge
--}
-
-getToSide : Edge -> NodeSide
-getToSide (Edge edge) = edge.toSide
+getAttachments : Edge -> Attachments
+getAttachments (Edge edge) = edge.attachments
 
 
 {-| Gets the Color of an Edge (if any).
@@ -248,56 +220,27 @@ getLabel (Edge edge) = edge.label
 -----------------------------------------------------------------------
 
 
-
 {-| Changes the ID of the node of an Edge is coming from.
 
-    Edge.changeFromNode 234567 edge
+    Edge.setFromNode 234567 edge
 -}
-changeFromNode : ID -> Edge -> Edge
-changeFromNode newID (Edge edge) =
-    Edge { edge | fromNode = newID }
-
-
-{-| Changes the fromSide of an Edge.
-
-    Edge.changeFromSide Top edge
--}
-changeFromSide : NodeSide -> Edge -> Edge
-changeFromSide newSide (Edge edge) =
-    Edge { edge | fromSide = newSide }
-
-
-{-| Changes the ID of the node of an Edge is pointing towards.
-
-    Edge.changeToNode 234567 edge
--}
-changeToNode : ID -> Edge -> Edge
-changeToNode newID (Edge edge) =
-    Edge { edge | toNode = newID }
-
-
-{-| Changes the toSide of an Edge.
-
-    Edge.changeToSide Right edge
--}
-changeToSide : NodeSide -> Edge -> Edge
-changeToSide newSide (Edge edge) =
-    Edge { edge | fromSide = newSide }
-
+setAttachments : Attachments -> Edge -> Edge
+setAttachments newVal (Edge edge) =
+    Edge { edge | attachments = newVal }
 
 {-| Changes the color of an Edge.
 
-    Edge.changeColor (Just "#00fff00") edge
+    Edge.setColor (Just "#00fff00") edge
 -}
-changeColor : Maybe Color -> Edge -> Edge
-changeColor newColor (Edge edge) =
+setColor : Maybe Color -> Edge -> Edge
+setColor newColor (Edge edge) =
     Edge { edge | color = newColor }
 
 
 {-| Changes the color of an Edge.
 
-    Edge.changeColor (Just "#00fff00") edge
+    Edge.setColor (Just "#00fff00") edge
 -}
-changeLabel : Maybe String -> Edge -> Edge
-changeLabel newLabel (Edge edge) =
+setLabel : Maybe String -> Edge -> Edge
+setLabel newLabel (Edge edge) =
     Edge { edge | label = newLabel }

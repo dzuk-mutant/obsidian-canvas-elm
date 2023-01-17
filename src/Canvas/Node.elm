@@ -4,25 +4,24 @@ module Canvas.Node exposing
     , encode
 
     , Base
-    , changeX, changeY, changeWidth, changeHeight, changeColor
-    , changePos, changeSize
+    , setX, setY, setWidth, setHeight, setColor
+    , setPosition, setSize
 
     , File
     , fileFromValues, convertToFile
-    , changeFile
-    , changeSubpath
+    , setFilepath, setSubpath
 
     , Text
     , textFromValues, convertToText
-    , changeText
+    , setText
 
     , Link
     , linkFromValues, convertToLink
-    , changeURL
+    , setURL
 
     , Group
     , groupFromValues, convertToGroup
-    , changeLabel
+    , setLabel
     )
 
 {-| Nodes are the objects on a Canvas that contain content.
@@ -39,8 +38,8 @@ module Canvas.Node exposing
 
 ### Changing values
 
-@docs changeX, changeY, changeWidth, changeHeight, changeColor
-@docs changePos, changeSize
+@docs setX, setY, setWidth, setHeight, setColor
+@docs setPosition, setSize
 
 -------------------------
 
@@ -54,7 +53,7 @@ module Canvas.Node exposing
 
 ### Changing values
 
-@docs changeFile, changeSubpath
+@docs setFilepath, setSubpath
 
 -------------------------
 
@@ -68,7 +67,7 @@ module Canvas.Node exposing
 
 ### Changing values
 
-@docs changeText
+@docs setText
 
 -------------------------
 
@@ -82,7 +81,7 @@ module Canvas.Node exposing
 
 ### Changing values
 
-@docs changeURL
+@docs setURL
 
 -------------------------
 
@@ -96,7 +95,7 @@ module Canvas.Node exposing
 
 ### Changing values
 
-@docs changeLabel
+@docs setLabel
 
 
 -}
@@ -154,6 +153,7 @@ encode node =
         TextNode t -> textEncoder "text" t
         LinkNode l -> linkEncoder "link" l
         GroupNode g -> groupEncoder "group" g
+
 
 ----------------------------------------------------
 ----------------------------------------------------
@@ -231,71 +231,71 @@ canvasNodeToJSONVals typeStr (NodeData node) =
 
 {-| Change the X-coordinate of a node.
 
-    Node.changeX 12 node
+    Node.setX 12 node
 -}
-changeX : Int -> Base r -> Base r
-changeX newVal (NodeData node) =
+setX : Int -> Base r -> Base r
+setX newVal (NodeData node) =
     NodeData { node | x = newVal }
 
 
 {-| Change the Y-coordinate of a node.
 
-    Node.changeY -567 node
+    Node.setY -567 node
 -}
-changeY : Int -> Base r -> Base r
-changeY newVal (NodeData node) =
+setY : Int -> Base r -> Base r
+setY newVal (NodeData node) =
     NodeData { node | y = newVal }
 
 
 {-| Change the width of a node.
 
-    Node.changeWidth 123 node
+    Node.setWidth 123 node
 -}
-changeWidth : Int -> Base r -> Base r
-changeWidth newVal (NodeData node) =
+setWidth : Int -> Base r -> Base r
+setWidth newVal (NodeData node) =
     NodeData { node | width = newVal }
 
 
 {-| Change the height of a node.
 
-    Node.changeHeight 250 node
+    Node.setHeight 250 node
 -}
-changeHeight : Int -> Base r -> Base r
-changeHeight newVal (NodeData node) =
+setHeight : Int -> Base r -> Base r
+setHeight newVal (NodeData node) =
     NodeData { node | height = newVal }
 
 
 {-| Change the height of a node.
 
-    Node.changeColor "#FFFFFF" node
+    Node.setColor "#FFFFFF" node
 -}
-changeColor : Maybe Color -> Base r -> Base r
-changeColor newVal (NodeData node) =
+setColor : Maybe Color -> Base r -> Base r
+setColor newVal (NodeData node) =
     NodeData { node | color = newVal }
 
 
 {-| Changes the position of a node.
-It combines `changeX` and `changeY` in a single declaration.
+It combines `setX` and `setY` in a single declaration.
 
-    Node.changePos 12 -837 node
+    Node.setPosition 12 -837 node
 -}
-changePos : Int -> Int -> Base r -> Base r
-changePos valX valY node =
+setPosition : Int -> Int -> Base r -> Base r
+setPosition valX valY node =
     node
-    |> changeX valX
-    |> changeY valY
+    |> setX valX
+    |> setY valY
 
 
 {-| Changes the size of a node.
-It combines `changeWidth` and `changeHeight` in a single declaration.
+It combines `setWidth` and `setHeight` in a single declaration.
 
-    Node.changeSize 680 200 node
+    Node.setSize 680 200 node
 -}
-changeSize : Int -> Int -> Base r -> Base r
-changeSize valWidth valHeight node =
+setSize : Int -> Int -> Base r -> Base r
+setSize valWidth valHeight node =
     node
-    |> changeWidth valWidth
-    |> changeHeight valHeight
+    |> setWidth valWidth
+    |> setHeight valHeight
 
 
 ----------------------------------------------------
@@ -401,7 +401,7 @@ fileFromValues :
     -> File
 fileFromValues {x, y, width, height, color, file, subpath} =
     fileConstructor
-        5346345 -- TODO: Figure out how to dynamically generate IDs.
+        (ID.fromInt 5346345) -- TODO: Figure out how to dynamically generate IDs.
         x
         y
         width
@@ -443,22 +443,21 @@ convertToFile node {file, subpath} =
         subpath
 
 
-
 {-| Change the filepath of a File.
 
-    Node.changeFile "new/path/here" file
+    Node.setFilepath "new/path/here" file
 -}
-changeFile : String -> File -> File
-changeFile newVal (NodeData node) =
+setFilepath : String -> File -> File
+setFilepath newVal (NodeData node) =
     NodeData { node | file = newVal }
 
 
 {-| Change the subpath of a Node.
 
-    Node.changeSubpath (Just "something") file
+    Node.setSubpath (Just "something") file
 -}
-changeSubpath : Maybe String -> File -> File
-changeSubpath newVal (NodeData node) =
+setSubpath : Maybe String -> File -> File
+setSubpath newVal (NodeData node) =
     NodeData { node | subpath = newVal }
 
 
@@ -543,7 +542,7 @@ textFromValues :
     -> Text
 textFromValues {x, y, width, height, color, text} =
     textConstructor
-        5346345 -- TODO: Figure out how to dynamically generate IDs.
+        (ID.fromInt 5346345) -- TODO: Figure out how to dynamically generate IDs.
         x
         y
         width
@@ -581,25 +580,24 @@ convertToText node {text} =
         text
 
 
-
 {-| Encodes a text node as a JSON object.
 -}
 textEncoder :
     String
     -> Text
     -> Encode.Value
-textEncoder typeStr (NodeData text) =
+textEncoder typeStr (NodeData node) =
     Encode.object <|
-        canvasNodeToJSONVals typeStr (NodeData text)
-        ++ [("text", Encode.string text.text)]
+        canvasNodeToJSONVals typeStr (NodeData node)
+        ++ [("text", Encode.string node.text)]
 
 
 {-| Change the text of a Text.
 
-    Node.changeText "some new thought I've had" text
+    Node.setText "some new thought I've had" text
 -}
-changeText : String -> Text -> Text
-changeText newVal (NodeData node) =
+setText : String -> Text -> Text
+setText newVal (NodeData node) =
     NodeData { node | text = newVal }
 
 
@@ -695,7 +693,7 @@ linkFromValues :
     -> Link
 linkFromValues {x, y, width, height, color, url} =
     linkConstructor
-        5346345 -- TODO: Figure out how to dynamically generate IDs.
+        (ID.fromInt 5346345) -- TODO: Figure out how to dynamically generate IDs.
         x
         y
         width
@@ -735,10 +733,10 @@ convertToLink node {url} =
 
 {-| Change the URL of a Link.
 
-    Node.changeText "https://haha.business/" link
+    Node.setText "https://haha.business/" link
 -}
-changeURL : String -> Link -> Link
-changeURL newVal (NodeData node) =
+setURL : String -> Link -> Link
+setURL newVal (NodeData node) =
     NodeData { node | url = newVal }
 
 
@@ -834,7 +832,7 @@ groupFromValues :
     -> Group
 groupFromValues {x, y, width, height, color, label} =
     groupConstructor
-        5346345 -- TODO: Figure out how to dynamically generate IDs.
+        (ID.fromInt 5346345) -- TODO: Figure out how to dynamically generate IDs.
         x
         y
         width
@@ -872,11 +870,10 @@ convertToGroup node {label} =
         label
 
 
-
 {-| Change the label of a Group.
 
-    Node.changeLabel (Just "Plans") group
+    Node.setLabel (Just "Plans") group
 -}
-changeLabel : Maybe String -> Group -> Group
-changeLabel newVal (NodeData node) =
+setLabel : Maybe String -> Group -> Group
+setLabel newVal (NodeData node) =
     NodeData { node | label = newVal }
