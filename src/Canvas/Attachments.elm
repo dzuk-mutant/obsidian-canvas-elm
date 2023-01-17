@@ -12,7 +12,7 @@ module Canvas.Attachments exposing
 @docs fromValues, encodeList
 -}
 
-import Canvas.Coordinate exposing (Coordinate)
+import Canvas.Position exposing (Position)
 import Canvas.ID as ID exposing (ID)
 import Canvas.NodeSide as NodeSide exposing (NodeSide)
 import Json.Encode as Encode
@@ -29,8 +29,8 @@ point of an Edge can be:
 -}
 type Attachments
     = Set Attachment Attachment
-    | UnsetStart Coordinate Attachment
-    | UnsetEnd Attachment Coordinate
+    | UnsetStart Position Attachment
+    | UnsetEnd Attachment Position
 
 
 {-| A node's attachment

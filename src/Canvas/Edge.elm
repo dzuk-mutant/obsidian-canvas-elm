@@ -107,7 +107,7 @@ constructor id fromNode fromSide toNode toSide color label =
 - AttachmentErr - an Attachment has thrown an Err.
 -}
 type Err
-    = AttachmentErr Attachments.Err
+    = AttachmentErr ID Attachments.Err
 
 
 {-| Encodes an Edge into a JSON object.
@@ -117,7 +117,7 @@ If the attachments are not fully set, then it will throw an Err.
 encode : Edge -> Result Err Encode.Value
 encode (Edge edge) =
     case Attachments.encodeList edge.attachments of
-        Err e -> Err <| AttachmentErr e
+        Err e -> Err <| AttachmentErr edge.id e
         Ok attachmentList ->
             Ok <|
                 Encode.object <|

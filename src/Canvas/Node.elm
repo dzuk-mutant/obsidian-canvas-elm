@@ -4,8 +4,8 @@ module Canvas.Node exposing
     , encode
 
     , Base
-    , setX, setY, setWidth, setHeight, setColor
-    , setPosition, setSize
+    , setPosition, setWidth, setHeight, setColor
+    , setSize
 
     , File
     , fileFromValues, convertToFile
@@ -102,6 +102,7 @@ module Canvas.Node exposing
 
 import Canvas.Color exposing (Color)
 import Canvas.Helper exposing (packMaybeJSONValue)
+import Canvas.Position as Position exposing (Position)
 import Canvas.ID as ID exposing (ID)
 import Json.Decode as Decode exposing (Decoder, andThen, string, int, maybe, fail, field, succeed)
 import Json.Decode.Pipeline exposing (required, optional)
@@ -174,8 +175,7 @@ This type is opaque for more stable API interactions.
 type Base r = 
     NodeData
     { r | id : ID
-        , x : Int
-        , y : Int
+        , position : Position
         , width : Int
         , height : Int
         , color : Maybe Color
@@ -188,8 +188,7 @@ For converting one node type into another.
 -}
 type alias Convertible = 
     { id : ID
-    , x : Int
-    , y : Int
+    , position : Position
     , width : Int
     , height : Int
     , color : Maybe Color
@@ -201,8 +200,7 @@ type alias Convertible =
 toConvertible : Base r -> Convertible
 toConvertible (NodeData node) =
     { id = node.id
-    , x = node.x
-    , y = node.y
+    , position = node.position
     , width = node.width
     , height = node.height
     , color = node.color
@@ -221,11 +219,10 @@ canvasNodeToJSONVals :
 canvasNodeToJSONVals typeStr (NodeData node) =
     [ ("id", Encode.string (ID.toString node.id))
     , ("type", Encode.string typeStr)
-    , ("x", Encode.int node.x)
-    , ("y", Encode.int node.y)
     , ("width", Encode.int node.width)
     , ("height", Encode.int node.height)
     ]
+    ++ Position.encodeList node.position
     ++ packMaybeJSONValue "color" Encode.string node.color
 
 
@@ -233,18 +230,9 @@ canvasNodeToJSONVals typeStr (NodeData node) =
 
     Node.setX 12 node
 -}
-setX : Int -> Base r -> Base r
-setX newVal (NodeData node) =
-    NodeData { node | x = newVal }
-
-
-{-| Change the Y-coordinate of a node.
-
-    Node.setY -567 node
--}
-setY : Int -> Base r -> Base r
-setY newVal (NodeData node) =
-    NodeData { node | y = newVal }
+setPosition : Int -> Int -> Base r -> Base r
+setPosition xVal yVal (NodeData node) =
+    NodeData { node | position = Position.set xVal yVal node.position }
 
 
 {-| Change the width of a node.
@@ -272,18 +260,6 @@ setHeight newVal (NodeData node) =
 setColor : Maybe Color -> Base r -> Base r
 setColor newVal (NodeData node) =
     NodeData { node | color = newVal }
-
-
-{-| Changes the position of a node.
-It combines `setX` and `setY` in a single declaration.
-
-    Node.setPosition 12 -837 node
--}
-setPosition : Int -> Int -> Base r -> Base r
-setPosition valX valY node =
-    node
-    |> setX valX
-    |> setY valY
 
 
 {-| Changes the size of a node.
@@ -353,14 +329,14 @@ fileConstructor :
 fileConstructor id x y width height color file subpath =
     NodeData
         { id = id
-        , x = x
-        , y = y
+        , position = Position.fromValues x y
         , width = width
         , height = height
         , color = color
         , file = file
         , subpath = subpath
         }
+
 
 {-| Encodes a file node as a JSON object.
 -}
@@ -434,8 +410,8 @@ convertToFile node {file, subpath} =
     in
     fileConstructor
         convertible.id
-        convertible.x
-        convertible.y
+        (Position.x convertible.position)
+        (Position.y convertible.position)
         convertible.width
         convertible.height
         convertible.color
@@ -510,8 +486,7 @@ textConstructor :
 textConstructor id x y width height color text =
     NodeData
         { id = id
-        , x = x
-        , y = y
+        , position = Position.fromValues x y
         , width = width
         , height = height
         , color = color
@@ -572,8 +547,8 @@ convertToText node {text} =
     in
     textConstructor
         convertible.id
-        convertible.x
-        convertible.y
+        (Position.x convertible.position)
+        (Position.y convertible.position)
         convertible.width
         convertible.height
         convertible.color
@@ -649,8 +624,7 @@ linkConstructor :
 linkConstructor id x y width height color url =
     NodeData
         { id = id
-        , x = x
-        , y = y
+        , position = Position.fromValues x y
         , width = width
         , height = height
         , color = color
@@ -723,8 +697,8 @@ convertToLink node {url} =
     in
     linkConstructor
         convertible.id
-        convertible.x
-        convertible.y
+        (Position.x convertible.position)
+        (Position.y convertible.position)
         convertible.width
         convertible.height
         convertible.color
@@ -788,8 +762,7 @@ groupConstructor :
 groupConstructor id x y width height color label =
     NodeData
         { id = id
-        , x = x
-        , y = y
+        , position = Position.fromValues x y
         , width = width
         , height = height
         , color = color
@@ -862,8 +835,8 @@ convertToGroup node {label} =
     in
     groupConstructor
         convertible.id
-        convertible.x
-        convertible.y
+        (Position.x convertible.position)
+        (Position.y convertible.position)
         convertible.width
         convertible.height
         convertible.color
