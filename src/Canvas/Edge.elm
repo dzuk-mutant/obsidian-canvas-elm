@@ -61,7 +61,7 @@ import Json.Encode as Encode
 {-| Edges are the arrows that create relationships between
 nodes.
 
-Edge is an opaque type for more stable control over values.
+This type is opaque for more stable API interactions.
 -}
 
 
@@ -160,15 +160,14 @@ fromValues :
     }
     -> Edge
 fromValues {fromNode, fromSide, toNode, toSide, color, label} =
-    Edge
-    { id = 234235 -- TODO: Figure out how to dynamically create these.
-    , fromNode = fromNode
-    , fromSide = fromSide
-    , toNode = toNode
-    , toSide = toSide
-    , color = color
-    , label = label
-    }
+    constructor
+        234235 -- TODO: Figure out how to dynamically create these.
+        fromNode
+        fromSide
+        toNode
+        toSide
+        color
+        label
 
 
 -----------------------------------------------------------------------
